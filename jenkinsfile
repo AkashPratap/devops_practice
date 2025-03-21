@@ -79,7 +79,6 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 sh '''
-                az logout
                 terraform init
                 '''
             }
