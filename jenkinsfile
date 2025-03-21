@@ -37,16 +37,6 @@ pipeline {
                 git branch: 'terraform', url: 'https://github.com/AkashPratap/devops_practice.git'
             }
         }
-        
-        stage('Grant sudo access') {
-            steps {
-                script {
-                    sh '''
-                    echo "jenkins ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
-                    '''
-                }
-            }
-        }
 
         stage('Install Dependencies') {
             steps {
