@@ -5,33 +5,28 @@ pipeline {
     }
     stages {
 
-        // stage('Setup Azure Credentials') {
-            // steps {
-            //     withCredentials([
-            //         azureServicePrincipal(
-            //             credentialsId: 'azurejt',
-            //             subscriptionIdVariable: 'AZURE_SUBSCRIPTION_ID',
-            //             clientIdVariable: 'AZURE_CLIENT_ID',
-            //             clientSecretVariable: 'AZURE_CLIENT_SECRET',
-            //             tenantIdVariable: 'AZURE_TENANT_ID'
-            //         )
-            //     ]) {
-            //         script {
-            //             env.TF_VAR_subscription_id = env.AZURE_SUBSCRIPTION_ID
-            //             env.TF_VAR_client_id       = env.AZURE_CLIENT_ID
-            //             env.TF_VAR_client_secret   = env.AZURE_CLIENT_SECRET
-            //             env.TF_VAR_tenant_id       = env.AZURE_TENANT_ID
-                        
-            //             sh '''
-            //             export ARM_CLIENT_ID=$AZURE_CLIENT_ID
-            //             export ARM_CLIENT_SECRET=$AZURE_CLIENT_SECRET
-            //             export ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID
-            //             export ARM_TENANT_ID=$AZURE_TENANT_ID
-            //             '''
-            //         }
-            //     }
-            // }
-        // }
+        stage('Setup Azure Credentials') {
+            steps {
+                withCredentials([
+                    azureServicePrincipal(
+                        credentialsId: 'azurejt',
+                        subscriptionIdVariable: 'AZURE_SUBSCRIPTION_ID',
+                        clientIdVariable: 'AZURE_CLIENT_ID',
+                        clientSecretVariable: 'AZURE_CLIENT_SECRET',
+                        tenantIdVariable: 'AZURE_TENANT_ID'
+                    )
+                ]) {
+                    script {
+                        sh '''
+                        export ARM_CLIENT_ID=$AZURE_CLIENT_ID
+                        export ARM_CLIENT_SECRET=$AZURE_CLIENT_SECRET
+                        export ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID
+                        export ARM_TENANT_ID=$AZURE_TENANT_ID
+                        '''
+                    }
+                }
+            }
+        }
         // stage('Verify') {
         //     steps {
         //         sh 'echo "Subscription ID: $TF_VAR_subscription_id"'
