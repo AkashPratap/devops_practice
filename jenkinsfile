@@ -1,59 +1,21 @@
 pipeline {
     agent any
-
+    environment {
+        AZURE_CREDENTIALS = credentials('azuresp') // Fetch stored Jenkins credential
+    }
     stages {
 
         stage('Setup') {
             steps {
-                withAzureCredentials(credentialsId: 'azurejt') {
-                    script {
-                        env.TF_VAR_subscription_id = env.AZURE_SUBSCRIPTION_ID
-                        env.TF_VAR_client_id       = env.AZURE_CLIENT_ID
-                        env.TF_VAR_client_secret   = env.AZURE_CLIENT_SECRET
-                        env.TF_VAR_tenant_id       = env.AZURE_TENANT_ID
-                    }
+                script {
+                    def creds = env.AZURE_CREDENTIALS.split(':') // Assuming ID & Secret are stored as 'id:secret'
+
+                    env.TF_VAR_client_id     = creds[0]
+                    env.TF_VAR_client_secret = creds[1]
+                    env.TF_VAR_subscription_id = creds[2]
+                    env.TF_VAR_tenant_id     = creds[3]
                 }
             }
-        }
-        
-        stage('Verify') {
-            steps {
-                sh 'echo "Subscription ID: $TF_VAR_subscription_id"'
-            }
-        }
-        stage('Checkout Code') {
-            steps {
-                git branch: 'terraform', url: 'https://github.com/AkashPratap/devops_practice.git'
-            }
-        }
-
-        stage('Install Azure CLI') {
-            steps {
-                sh '''
-                if ! command -v az &> /dev/null; then
-                    echo "Azure CLI not found. Installing..."
-                    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-                else
-                    echo "Azure CLI is already installed."
-                fi
-                az version
-                '''
-            }
-        }
-
-        stage('Install Terraform') {
-            steps {
-                sh '''
-                if ! command -v terraform &> /dev/null; then
-                    echo "Installing Terraform..."
-                    wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
-                    unzip terraform_1.6.0_linux_amd64.zip
-                    sudo mv terraform /usr/local/bin/
-                fi
-                terraform version
-                '''
-            }
-        }
 
         stage('Terraform Init') {
             steps {
