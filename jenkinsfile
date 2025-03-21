@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-        
+
         stage('Setup') {
             steps {
                 withAzureCredentials(credentialsId: 'your-azure-credentials-id') {
@@ -23,7 +23,7 @@ pipeline {
         }
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/AkashPratap/devops_practice.git' 
+                git branch: 'terraform', url: 'https://github.com/AkashPratap/devops_practice.git'
             }
         }
 
