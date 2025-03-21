@@ -1,14 +1,26 @@
 pipeline {
     agent any
 
-    environment {
-        TF_VAR_subscription_id = credentials('AZURE_SUBSCRIPTION_ID')
-        TF_VAR_client_id       = credentials('AZURE_CLIENT_ID')
-        TF_VAR_client_secret   = credentials('AZURE_CLIENT_SECRET')
-        TF_VAR_tenant_id       = credentials('AZURE_TENANT_ID')
-    }
-
     stages {
+        
+        stage('Setup') {
+            steps {
+                withAzureCredentials(credentialsId: 'your-azure-credentials-id') {
+                    script {
+                        env.TF_VAR_subscription_id = env.AZURE_SUBSCRIPTION_ID
+                        env.TF_VAR_client_id       = env.AZURE_CLIENT_ID
+                        env.TF_VAR_client_secret   = env.AZURE_CLIENT_SECRET
+                        env.TF_VAR_tenant_id       = env.AZURE_TENANT_ID
+                    }
+                }
+            }
+        }
+        
+        stage('Verify') {
+            steps {
+                sh 'echo "Subscription ID: $TF_VAR_subscription_id"'
+            }
+        }
         stage('Checkout Code') {
             steps {
                 git 'https://github.com/AkashPratap/devops_practice.git' 
