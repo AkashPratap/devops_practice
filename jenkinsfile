@@ -45,6 +45,16 @@ pipeline {
                 }
             }
         }
+        
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    sh '''
+                    sudo apt update && sudo apt install -y unzip
+                    '''
+                }
+            }
+        }
 
         stage('Install Azure CLI') {
             steps {
