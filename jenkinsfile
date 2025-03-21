@@ -21,6 +21,11 @@ pipeline {
                         env.TF_VAR_client_id       = env.AZURE_CLIENT_ID
                         env.TF_VAR_client_secret   = env.AZURE_CLIENT_SECRET
                         env.TF_VAR_tenant_id       = env.AZURE_TENANT_ID
+
+                        sh 'export ARM_CLIENT_ID=$AZURE_CLIENT_ID'
+                        sh 'export ARM_CLIENT_SECRET=$AZURE_CLIENT_SECRET'
+                        sh 'export ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID'
+                        sh 'export ARM_TENANT_ID=$AZURE_TENANT_ID'
                     }
                 }
             }
@@ -45,7 +50,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Install Dependencies') {
             steps {
                 script {
