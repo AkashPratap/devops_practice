@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        AZURE_CREDENTIALS = credentials('azuresp') // Fetch stored Jenkins credential
+        AZURE_CREDENTIALS = credentials('azurejt') // Fetch stored Jenkins credential
     }
     stages {
 
