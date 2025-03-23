@@ -1,37 +1,11 @@
 pipeline {
     agent any
     environment {
-        AZURE_CREDENTIALS = credentials('azurejt') // Fetch stored Jenkins credential
+        AZURE_CREDENTIALS = credentials('azurejt')
     }
     stages {
+        
 
-        stage('Setup Azure Credentials') {
-            steps {
-                withCredentials([
-                    azureServicePrincipal(
-                        credentialsId: 'azurejt',
-                        subscriptionIdVariable: 'AZURE_SUBSCRIPTION_ID',
-                        clientIdVariable: 'AZURE_CLIENT_ID',
-                        clientSecretVariable: 'AZURE_CLIENT_SECRET',
-                        tenantIdVariable: 'AZURE_TENANT_ID'
-                    )
-                ]) {
-                    script {
-                        sh '''
-                        export ARM_CLIENT_ID=$AZURE_CLIENT_ID
-                        export ARM_CLIENT_SECRET=$AZURE_CLIENT_SECRET
-                        export ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID
-                        export ARM_TENANT_ID=$AZURE_TENANT_ID
-                        '''
-                    }
-                }
-            }
-        }
-        // stage('Verify') {
-        //     steps {
-        //         sh 'echo "Subscription ID: $TF_VAR_subscription_id"'
-        //     }
-        // }
         stage('Checkout Code') {
             steps {
                 git branch: 'terraform', url: 'https://github.com/AkashPratap/devops_practice.git'
@@ -40,11 +14,10 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                script {
-                    sh '''
-                    sudo apt update && sudo apt install -y unzip
-                    '''
-                }
+                sh '''
+                sudo apt update
+                sudo apt install -y unzip curl wget
+                '''
             }
         }
 
@@ -76,23 +49,47 @@ pipeline {
             }
         }
 
-        stage('Terraform Init') {
+        stage('Terraform Init & Apply') {
             steps {
-                sh '''
-                terraform init
-                '''
-            }
-        }
+                withCredentials([azureServicePrincipal(credentialsId: 'azurejt')]) {
+                    sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID'
+                    sh 'az aks list' // Example Azure CLI command
 
-        stage('Terraform Plan') {
-            steps {
-                sh 'terraform plan -out=tfplan'
-            }
-        }
+                    sh '''
+                    export ARM_CLIENT_ID=$AZURE_CLIENT_ID
+                    export ARM_CLIENT_SECRET=$AZURE_CLIENT_SECRET
+                    export ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID
+                    export ARM_TENANT_ID=$AZURE_TENANT_ID
 
-        stage('Terraform Apply') {
-            steps {
-                sh 'terraform apply -auto-approve tfplan'
+                    export TF_VAR_client_id=$AZURE_CLIENT_ID
+                    export TF_VAR_client_secret=$AZURE_CLIENT_SECRET
+                    export TF_VAR_subscription_id=$AZURE_SUBSCRIPTION_ID
+                    export TF_VAR_tenant_id=$AZURE_TENANT_ID
+
+                    terraform init  -force-copy 
+                    terraform apply -auto-approve
+                    '''
+                }
+            }
+                
+        }
+    }
+    post {
+        success {
+            withCredentials([azureServicePrincipal(credentialsId: 'azurejt')]) {
+            sh '''
+            export ARM_CLIENT_ID=$AZURE_CLIENT_ID
+            export ARM_CLIENT_SECRET=$AZURE_CLIENT_SECRET
+            export ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID
+            export ARM_TENANT_ID=$AZURE_TENANT_ID
+
+            export TF_VAR_client_id=$AZURE_CLIENT_ID
+            export TF_VAR_client_secret=$AZURE_CLIENT_SECRET
+            export TF_VAR_subscription_id=$AZURE_SUBSCRIPTION_ID
+            export TF_VAR_tenant_id=$AZURE_TENANT_ID
+            
+            terraform destroy -auto-approve
+            '''
             }
         }
     }
